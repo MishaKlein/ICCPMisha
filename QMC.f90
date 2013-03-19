@@ -7,8 +7,12 @@ program QMC
  real(8):: r(3,N), rtest(3,N), alpha ,Etest(N,intalpha), Elocal(N)     ! r(3,N) is a 3x1 for every walker. Don't save history. Only save last MC step 
  integer :: i,k,j 
  real(8) :: Emean(intalpha)
+ real(8) :: s ,a 
 
   alpha=0.3        !set first alhpa value 
+  s=15             ! Set distance between nuclei (test, incorporate later)
+  call NewtonRaphson(a,s)
+  
 !-------------------------------------------------------------------------------------------------------------------------
 !-------------------- MAIN PROGRAM AND SIMULATION--------------------------------------------------------------------------
 do k=1,intalpha								  !Parameter loop	
@@ -131,6 +135,41 @@ integer :: i
   !end do
 end subroutine testE
 !---------------------------------------------------------------------------------------------------------------
+ ! Newton-Raphson method, for cusp condition
+ 
+function root(a,s)
+real(8), intent(in) :: a ,s
+real(8) :: root 
+root=(1+exp(-s/a))**(-1) - a
+return
+end function
+
+function rootprime(a,s)
+real(8), intent(in) :: a ,s 
+real(8) :: rootprime 
+rootprime=-s*exp(-s/a)*(a*(1+exp(-s/a)))**(-2)-1
+return
+end function
+
+subroutine NewtonRaphson(a,s)
+ real(8), intent(in) :: s
+ real(8), intent(out) :: a
+ real(8)  :: leaveloop	!Stopping criterium 
+ real(8)  :: f , f_prime 
+ leaveloop=1d-10	
+ a=-77			   ! Initial geuss for a 
+ f=root(a,s)       ! The function at interest 
+	do while (abs(f)>leaveloop) 
+		f_prime=rootprime(a,s)       !Derivative of function 
+		a=a-(f/f_prime)				 !NR-method 
+		f=root(a,s)
+		print *, a 
+	end do
+end subroutine 
+
+
+ 
+!---------------------------------------------------------------------------------------------------------------
 !This subroutine selects a random seed (starting point) for the speudo random number generator 
  subroutine init_random_seed()
 
@@ -149,7 +188,15 @@ end subroutine
 
 
 
+!<<<<<<< HEAD
+
+
   
 
+!=======
+!subroutine pushtest()
+ 
+!end subroutine
+!>>>>>>> upstream/master
   
 end program QMC 
