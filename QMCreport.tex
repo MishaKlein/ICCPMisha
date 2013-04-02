@@ -1,0 +1,184 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{subfigure}
+\usepackage{setspace}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{textcomp}
+\usepackage{mathpazo}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{braket}
+\usepackage{empheq}
+\bibliographystyle{aip}
+
+% abbreviations
+\usepackage{xspace}
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+\def\eg{{e.g}\onedot} \def\Eg{{E.g}\onedot}
+\def\ie{{i.e}\onedot} \def\Ie{{I.e}\onedot}
+\def\cf{{c.f  }\onedot} \def\Cf{{C.f}\onedot}
+\def\etc{{etc}\onedot}
+\def\vs{{vs}\onedot}
+\def\wrt{w.r.t\onedot}
+\def\dof{d.o.f\onedot}
+\def\etal{{et al}\onedot}
+\makeatother
+
+\begin{document}
+\begin{center}
+{\bf \Large A VQMC simulation for the hydrogen molecule} \\
+\vspace{10pt}
+{\bf Xukun Xiang \quad Misha Klein}
+\end{center}
+
+\begin{abstract}
+ A NICE ABSTRACT 
+\end{abstract}
+
+\section{Introduction}
+
+Mention here that VQMC is a method for finding the ground state energy. 
+
+\section{Description of variational Monte Carlo for H$_{2}$ molecule}
+	  \begin{itemize}
+	   \item Mention additional calculations on quadrupolemoment, if that has been done. 
+	   \end{itemize}
+	\subsection{Setup Variational method}
+The system at hand consists of two electrons and two nuclei. The goal of our experiment is to find the potential energy felt by the two electrons, due to the nuclei, as a function of the distance between the nuclei. By considering both the kinetic contribution and the coulomb interaction between any set of two particles, one obtains the following hamiltonian:
+	\begin{subequations}
+	\begin{align}
+	H_{n}  &=  -\frac{1}{2} \nabla^{2}_{\vec{R}_{L}}  -\frac{1}{2} \nabla^{2}_{\vec{R}_{R}} + V_{n}(\vec{R}_{L},\vec{R}_{R})  
+	      	 & \text{with:}  \\
+	V_{n}(\vec{R}_{L},\vec{R}_{R}) &= \frac{1}{|\vec{R}_{L}-\vec{R}_{R}|}  + \frac{ \int  \mathrm{d}^{3}\vec{r}_{1}\mathrm{d}^{3}\vec{r}_{2} \Psi_{e}^{*} H_{e} \Psi_{e} }{\int  \mathrm{d}^{3}\vec{r}_{1}\mathrm{d}^{3}\vec{r}_{2} |\Psi_{e}|^{2} }   \label{Vn}
+	\end{align} 
+	\end{subequations}
+The co\"ordinates of the "left" and "right" nucleus are denoted by $\vec{R}_{L}$ and $\vec{R}_R$ respectively. 
+The above hamiltonian is what can be identified as the hamiltonian for the nuclei. The electron hamiltonian, $H_{e}$, contains all terms involving the co\"odinates of the electrons:
+	\begin{equation}
+	H_{e} =  -\frac{1}{2} \nabla^{2}_{\vec{r}_{1}}  -\frac{1}{2} \nabla^{2}_{\vec{r}_{2}} + \frac{1}{| \vec{r}_1 -\vec{r}_2 |}  - \frac{1}{| \vec{r}_1 -\vec{R}_ R|} - \frac{1}{| \vec{r}_1 -\vec{R}_L |} - \frac{1}{| \vec{r}_2 -\vec{R}_ R|} - \frac{1}{| \vec{r}_2 -\vec{R}_L |}
+	\label{Hamiltonian}
+	\end{equation}
+The system's minimal potential energy, $V_{n}$, is found by using variational calculus. Since the coulomb interaction between the nuclei is a fixed function of the distance between the nuclei, $V_{n}$ is minimized by minimizing the integral term. For the variational method, one chooses a trial wavefunction and minimizes the resulting energy within the subspace to which all such trial wavefunctions belong. The integral term in equation (\ref{Vn}) is rewritten, by defining a local energy function:
+		\begin{equation}
+		 \frac{ \int  \mathrm{d}^{3}\vec{r}_{1}\mathrm{d}^{3}\vec{r}_{2} \Psi_{e}^{*} H_{e} \Psi_{e} }{\int  \mathrm{d}^{3}\vec{r}_{1}\mathrm{d}^{3}\vec{r}_{2} |\Psi_{e}|^{2} }   \equiv \int \mathrm{d}^{3}\vec{r}_1  \mathrm{d}^{3}\vec{r}_2 \mu(\vec{r}_1,\vec{r}_2) E_{L}(\vec{r}_1,\vec{r}_{2}. \vec{R}_L,\vec{R}_{R}) 
+		 \label{Importance Sampling}
+		 \end{equation}
+where the local energy, $E_{L}$, and normalized probability density, $\mu$ are defined by:
+		\begin{subequations}
+		\begin{align}
+		\mu(\vec{r}_1,\vec{r}_2) &= \frac{|\Psi_{e}|^{2} } { \int \mathrm{d}^{3} \vec{r}_1  \mathrm{d}^{3} \vec{r}_2 |\Psi_{e}|^{2} } \\
+E_{L}(\vec{r}_1,\vec{r}_{2}. \vec{R}_L,\vec{R}_{R}) &=  \frac{H_{e} \Psi_{e}} { \Psi_{e} }			\label{Elocaldef}
+		\end{align}
+		\end{subequations}
+The chosen trial wavefunction takes on the following form:
+		\begin{subequations} 
+		\begin{align}
+		\Psi_{e} &= \psi(\vec{r}_1) \psi(\vec{r}_2) f(|\vec{r}_{1} - \vec{r}_2|)   \\
+		\psi(\vec{r}) &= e^{-|\vec{r} -\vec{R}_{L}| /a }  +e^{-|\vec{r} -\vec{R}_{R}| /a }     \label{Orbit}\\
+		f(r)   &= e^{\frac{r}{\alpha(1+\beta r)} }
+		\end{align}
+		\label{Wavefunction}
+		\end{subequations}
+Since it is known that in the ground state of H$_{2}$ the electrons spins are in the (assymetric) singlet state, a symmetric spatial wavefunction is constructed. The electron orbits, $\psi$'s, are accompanied by the so called Jastrow factor, f(r). The Jastrow factor ensures that the two electrons will obey the Pauli principle, making it impossible to place them at the same point in space.  \\
+In the limit that an electron gets close to a nucleus, the corresponding coulomb interaction term in the potential blows up. The same can be said for bringing the two electrons close to each other. To prevent the potential energy from becoming infinitely large we require the wavefunction to satisfy appropriate cusp conditions. These fix two of the three parameters in the wavefunction:
+		\begin{subequations}
+		\begin{align}
+		\alpha &= 2         \label{cuspalpha}    \\         
+		a &= \frac{1}{1+e^{-|\vec{R}_L -\vec{R}_R|/a} } \label{cuspa}
+		\end{align}
+		\end{subequations}
+The second of these equations can be solved numerically (using the Newton-Raphson method)  for a given internuclear distance.  After having determined the local energy function, the integral of equation (\ref{Importance Sampling}) is evaluated by carrying out Monte Carlo integration. Importance sampling ,with probability distribution $\mu$, is performed by using the Metropolis algorithm.
+\subsection{Local energy function}
+Combining equations (\ref{Wavefunction}), (\ref{Elocaldef}) and (\ref{Hamiltonian}) results the following expression for the local energy:
+	\begin{empheq}[box=\fbox]{align}
+	\begin{split}
+	E_{L} &=  \frac{1}{r_{1L}} [(1+\frac{\vec{r}_{1L} \cdot \hat{\vec{r}}_{12} }{ \alpha \gamma^{2} }) \frac{e^{-\frac{r_{1L}}{a}}}{a\psi(\vec{r}_1)} -1] \\
+		 & + \frac{1}{r_{1R}} [(1+\frac{\vec{r}_{1R} \cdot \hat{\vec{r}}_{12} }{ \alpha \gamma^{2} }) \frac{e^{-\frac{r_{1R}}{a}}}{a\psi(\vec{r}_1)} -1]  \\
+		 & + \frac{1}{r_{2L}} [(1  - \frac{\vec{r}_{2L} \cdot \hat{\vec{r}}_{12} }{ \alpha \gamma^{2} }) \frac{e^{-\frac{r_{2L}}{a}}}{a\psi(\vec{r}_2)} -1]   \\
+		 &+ \frac{1}{r_{2R}} [(1  - \frac{\vec{r}_{2R} \cdot \hat{\vec{r}}_{12} }{ \alpha \gamma^{2} }) \frac{e^{-\frac{r_{2R}}{a}}}{a\psi(\vec{r}_2)} -1]   \\
+		 & + \frac{1}{r_{12}} (1 - \frac{2\alpha \gamma +r_{12} }{\alpha^{2} \gamma^{4} }) \\
+		 & - \frac{1}{a^{2}}   
+	\label{Elocal}
+	 \end{split} 
+	 \end{empheq}
+Here, $r_{ij}$ denotes the length of the vector $\vec{r}_{ij}$$\equiv$$|\vec{r}_{i} -\vec{r}_{j}|$ and $\gamma$= 1+$\beta r_{12}$. The restrictions that follow from the cusp conditions can be (re)derived from the expression for the local energy. Consider the limiting case of bringing the two electrons towards the same point ($r_{12} \rightarrow 0)$. The fourth term in equation (\ref{Elocal}) now becomes dominant. The constraints on the parameters are such that the limit $\mathrm{Lim_{r_{12} \rightarrow 0}} E_{L}$ exists. 
+	\begin{empheq}[box=\fbox]{align*}
+	\begin{split}
+	&  \frac{1}{r_{12}} (1 - \frac{2\alpha \gamma +r_{12} }{\alpha^{2} \gamma^{4} })   \rightarrow  \\
+	& \frac{1}{r_{12}} (1 - \frac{2\alpha \gamma}{\alpha^{2} \gamma^{4} })  	 \rightarrow	      \\
+	&  \frac{1}{r_{12}} (1 - \frac{2\alpha}{\alpha^{2} })
+	\end{split}
+	\end{empheq}
+where $\mathrm{Lim_{r_{12} \rightarrow 0}} \gamma$=1 has been used in the third line. To prevent $E_{L}$ from becoming infinitely large we require:
+	$$
+	 (1 - \frac{2\alpha}{\alpha^{2} }) =0 
+	 $$
+from which equation (\ref{cuspalpha}) follows. The constraint on $a$ is such that $\mathrm{Lim_{\vec{r} \rightarrow \vec{R}}} E_{L}$ exists, for all combinations of electron and nuclei co\"ordinates. Consider, for example, the limit in which the first electron gets placed on top of the leftmost nucleus ($r_{1L} \rightarrow 0$). The first term in equation (\ref{Elocal}) becomes dominant.
+	\begin{empheq}[box=\fbox]{align*}
+	\begin{split}
+	 & \frac{1}{r_{1L}} [(1+\frac{\vec{r}_{1L} \cdot \hat{\vec{r}}_{12} }{ \alpha \gamma^{2} }) \frac{e^{-\frac{r_{1L}}{a}}}{a\psi(\vec{r}_1)} -1]  \rightarrow \\
+	 & \frac{1}{r_{1L}} [ \frac{1}{a\psi(\vec{r}_1)} -1]  \rightarrow \\
+	 &  \frac{1}{r_{1L}} [ \frac{1}{a(1+e^{-\frac{|\vec{R}_{L} -\vec{R}_{R}|}{a}}) }-1] 
+	 \end{split}
+	 \end{empheq}
+From equation (\ref{Orbit}) it follows that $\mathrm{Lim_{r_{1L} \rightarrow0}} \psi(\vec{r}_1)$=$ 1+e^{-\frac{|\vec{R}_{L} -\vec{R}_{R}|}{a}}$. The local energy does not become infitly large if we require:
+	$$
+	 [ \frac{1}{a(1+e^{-\frac{|\vec{R}_{L} -\vec{R}_{R}|}{a}}) }-1] =0 
+	 $$
+from which equation (\ref{cuspa}) follows. In a similar fashion this same constraint can be derived by bringing the first electron close to the rightmost nucleus or bringing the second electron close to any one of the nuclei. \\
+It is insightful to consider the limiting behavior of the local energy as a function of the internuclear distance. When the two nuclei are brought together ("fused"), the system becomes equivalent to that of a helium atom. 
+	\begin{empheq}[box=\fbox]{align*}
+	\begin{split}
+	  \mathrm{Lim_{\vec{R}_{L}\rightarrow \vec{R}_{R}}} E_{L}  
+	 &=  \mathrm{Lim_{\vec{R}_{L}\rightarrow \vec{R}_{R}}}  (\frac{2}{r_{1L}} [(1+\frac{\vec{r}_{1L} \cdot \hat{\vec{r}}_{12} }{ 2 \gamma^{2} }) \frac{1}{2a} -1]      \\
+	&  + \frac{2}{r_{2L}} [(1  - \frac{\vec{r}_{2L} \cdot \hat{\vec{r}}_{12} }{ 2 \gamma^{2} }) \frac{1}{2a} -1] )  \\
+		& +\frac{1}{r_{12}} -\frac{1}{r_{12}\gamma^{3}} -\frac{1}{4r_{12}\gamma^{4}} -\frac{1}{a^{2}} \\
+	&= \frac{ (\vec{r}_1 -\vec{r}_2) \cdot \hat{\vec{r}}_{12} }{2ar_{12} \gamma^{2}}  +\frac{1}{r_{12}} -\frac{1}{r_{12}\gamma^{3}} -\frac{1}{4r_{12}\gamma^{4}} -\frac{1}{a^{2}} \\
+	\end{split}
+	\end{empheq}
+In this limit it holds that $r_{iL}$=$r_{iR}$. To arrive at the final line both the constraint $\alpha$=2 and the fact that $(\vec{r}_{1L} -\vec{r}_{2R})\cdot \hat\vec{r}_{12}$ = $(\vec{r}_1 -\vec{r}_2) \cdot \hat{\vec{r}}_{12}$ have been used.
+It can be verified that this expression is precisely the local energy for the helium atom when using similar trial wavefunctions (See REF BOEK Joss THIJSSEN). \\
+In the opposite limit of separating the two sets of nuclei + electron, the local energy expresion reduces to that of two separate hydrogen atoms.  To see this, one must take the following four limits of equation (\ref{Elocal}) simultaneously:
+	\begin{empheq}[box=\fbox]{align*}
+	\begin{split}
+	|\vec{R}_{L} -\vec{R}_{R}|  &\rightarrow \infty \\
+	r_{1R} &\rightarrow \infty \\
+	r_{2L} &\rightarrow \infty \\
+	r_{12} &\rightarrow \infty
+	\end{split}
+	\end{empheq}
+Using the constraint on $\alpha$ and that $\gamma \rightarrow \infty$ in the above limits results in:	
+	\begin{empheq}[box=\fbox]{align*}
+	\begin{split}
+	E_{L} \rightarrow -\frac{1}{r_{1L}} - \frac{1}{2a} (\frac{1}{a} -\frac{2}{r_{1L}}) -\frac{1}{r_{2R}} - \frac{1}{2a} (\frac{1}{a} -\frac{2}{r_{2R}})  \\
+	\end{split}
+	\end{empheq}
+This is precisely twice the local energy for a H-atom (SEE BOOK JOSS THIJSSEN). 
+
+
+
+
+
+\section{Results and discussion} 
+	\begin{itemize}
+	\item plot of E vs s with fit of Morse potential (and Harmonic oscilator)
+	\item "electron orbit" 
+	\item additional calculation of quadrupolemoment (IF)
+	\end{itemize}
+
+ 
+\section{Conclusion}
+	Summarize and conclude 
+	
+
+
+\end{document}
+
+
